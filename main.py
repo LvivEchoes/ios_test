@@ -19,6 +19,9 @@ def test_hearing_device(driver: WebDriver):
         # If no device found will skip test
         return
 
+    # Connect to hearing device
+    cochlear_device[0].click()
+
     # Change between available Presets
     presets = driver.find_elements_by_xpath('//XCUIElementTypeOther[@name="Master Volume"]')
 
@@ -133,6 +136,7 @@ def test_test():
     driver.execute_script("mobile: swipe", {"direction": "left"})
     app_icon = driver.find_element_by_accessibility_id('Nucleus Smart')
     app_icon.click()
+    time.sleep(2)
 
     for _ in range(5):
         driver.execute_script("mobile: swipe", {"direction": "left"})
