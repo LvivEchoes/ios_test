@@ -1,5 +1,6 @@
 import time
 
+from random import randint
 from appium.webdriver.common.touch_action import TouchAction
 from appium.webdriver.webdriver import WebDriver
 
@@ -78,10 +79,10 @@ def test_hearing_device(driver: WebDriver):
     driver.back()
 
 
-def test_test():
+def test_setting():
     capabilities = {
         "deviceName": "iPhone SE",
-        "udid": "f4946b2b36e4b7a64fe1405e1c8456bac9e4bca0",
+        "udid": "b3346f9b0c4797e7a68fffb4532e1727bc23ad76",
         "platformName": "iOS",
         "automationName": "XCUITest",
         "app": "Settings",
@@ -100,12 +101,12 @@ def test_test():
     click_on_element(driver, accessibility)
 
     time.sleep(5)
-    hearing_devoces = driver.find_element_by_name('Hearing Devices')
+    hearing_devoces = driver.find_element_by_xpath('//XCUIElementTypeCell[contains(@name, "Hearing Devices")]')
     while not hearing_devoces.is_displayed():
         driver.execute_script("mobile: swipe", {"direction": "up"})
 
     while hearing_devoces.is_displayed():
-        hearing_devoces = driver.find_element_by_name('Hearing Devices')
+        hearing_devoces = driver.find_element_by_xpath('//XCUIElementTypeCell[contains(@name, "Hearing Devices")]')
         hearing_devoces.click()
 
     bluetooth_switch = driver.find_elements_by_xpath('//XCUIElementTypeSwitch[@name="Bluetooth"]')
@@ -120,23 +121,38 @@ def test_test():
 
     driver.execute_script("mobile: swipe", {"direction": "up"})
 
-    slider = driver.find_element_by_xpath('//XCUIElementTypeOther[@name="Left-Right Stereo Balance"]')
+    slider = driver.find_element_by_xpath(
+        '//XCUIElementTypeCell[@name="Left-Right Stereo Balance"]/XCUIElementTypeOther[3]'
+    )
 
     old_value = slider.get_attribute('value')
 
     action = TouchAction(driver)
-    action.tap(slider, x=50, y=10)
+    action.tap(slider, x=randint(0, 50), y=10)
     action.perform()
 
     new_value = slider.get_attribute('value')
     assert old_value != new_value
 
-    time.sleep(3)
-    driver.background_app(-1)
-    driver.execute_script("mobile: swipe", {"direction": "left"})
-    app_icon = driver.find_element_by_accessibility_id('Nucleus Smart')
-    app_icon.click()
     time.sleep(2)
+    driver.quit()
+
+
+def test_application():
+    capabilities = {
+        "deviceName": "iPhone SE",
+        "udid": "b3346f9b0c4797e7a68fffb4532e1727bc23ad76",
+        "platformName": "iOS",
+        "automationName": "XCUITest",
+        "app": "/Users/pavlo.tsyupka/Downloads/Nucleus Smart 1.431.2.zip",
+        "xcodeSigningId": "iPhone Developer",
+        "updatedWDABundleId": "com.afkTestTeam.WebDriverAgentLib",
+        "shouldWaitForQuiescence": "False",
+        "fastReset": True
+    }
+
+    driver = WebDriver("http://0.0.0.0:4723/wd/hub", desired_capabilities=capabilities)
+    driver.implicitly_wait(5)
 
     for _ in range(5):
         driver.execute_script("mobile: swipe", {"direction": "left"})
@@ -148,8 +164,12 @@ def test_test():
     volume_open_button = driver.find_element_by_xpath('//XCUIElementTypeCell[@name="volume"]')
     volume_open_button.click()
 
-    plus_button = driver.find_element_by_xpath('//XCUIElementTypeApplication[@name="Nucleus Smart"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeCollectionView/XCUIElementTypeCell[2]/XCUIElementTypeOther/XCUIElementTypeOther[4]/XCUIElementTypeOther/XCUIElementTypeButton[1]')
-    minus_button = driver.find_element_by_xpath('//XCUIElementTypeApplication[@name="Nucleus Smart"]/XCUIElementTypeWindow[1]/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeOther/XCUIElementTypeCollectionView/XCUIElementTypeCell[2]/XCUIElementTypeOther/XCUIElementTypeOther[4]/XCUIElementTypeOther/XCUIElementTypeButton[2]')
+    plus_button = driver.find_element_by_xpath(
+        '//XCUIElementTypeOther[4]/XCUIElementTypeOther/XCUIElementTypeButton[1]'
+    )
+    minus_button = driver.find_element_by_xpath(
+        '//XCUIElementTypeOther[4]/XCUIElementTypeOther/XCUIElementTypeButton[2]'
+    )
 
     value_element = driver.find_element_by_xpath('//XCUIElementTypeCell[@name="volume"]')
     old_value = value_element.get_attribute('value')
@@ -176,10 +196,10 @@ def test_test():
         driver.execute_script("mobile: swipe", {"direction": "right"})
         time.sleep(0.125)
 
-    driver.background_app(-1)
-
     driver.quit()
 
 
 if __name__ == "__main__":
-    test_test()
+    test_setting()
+    test_application()
+
