@@ -11,6 +11,70 @@ def click_on_element(driver, element, direction='up'):
     element.click()
 
 
+def test_hearing_device(driver: WebDriver):
+    # TODO: selectors in this function may be isn't correct, need recheck them with real device
+    cochlear_device = driver.find_elements_by_xpath('//XCUIElementTypeCell[contains(@name, "Cochlear")]')
+
+    if not cochlear_device:
+        # If no device found will skip test
+        return
+
+    # Change between available Presets
+    presets = driver.find_elements_by_xpath('//XCUIElementTypeOther[@name="Master Volume"]')
+
+    # If available more than 1 Presets will change one them
+    if len(presets) > 1:
+        presets[-1].click()
+        time.sleep(1)
+
+        assert not presets[0].is_selected()
+
+    # Change "Master Volume"//XCUIElementTypeCell[contains(@name, "Cochlear")]
+    master_volume_slider = driver.find_element_by_xpath('//XCUIElementTypeOther[@name="Master Volume"]')
+
+    old_value = master_volume_slider.get_attribute('value')
+    action = TouchAction(driver)
+    action.tap(master_volume_slider, x=50, y=10)
+    action.perform()
+    new_value = master_volume_slider.get_attribute('value')
+
+    # Check if slider value changed
+    assert old_value != new_value
+
+    # Allow/disallow streaming to paired Sound Processor
+    streaming_switch = driver.find_element_by_xpath('//XCUIElementTypeSwitch[contains(@name, "Streaming")')
+
+    # Disallow streaming value
+    if streaming_switch.is_selected():
+        streaming_switch.click()
+        time.sleep(1)
+
+    # Check if streaming disallowed
+    assert not streaming_switch.is_selected()
+
+    # Allow streaming, and check if it allowed
+    streaming_switch.click()
+    time.sleep(1)
+
+    assert streaming_switch.is_selected()
+
+    # Start/Stop LIVE LISTEN on iOS Mobile Device
+    start_live_listen_button = driver.find_element_by_xpath('//XCUIElementTypeOther[contains(@name, "Start")]')
+    start_live_listen_button.click()
+    time.sleep(1)
+
+    assert not driver.find_elements_by_xpath('//XCUIElementTypeOther[contains(@name, "Start")]')
+
+    stop_live_listen_button = driver.find_element_by_xpath('//XCUIElementTypeOther[contains(@name, "Stop")]')
+    stop_live_listen_button.click()
+    time.sleep(1)
+
+    assert not driver.find_elements_by_xpath('//XCUIElementTypeOther[contains(@name, "Stop")]')
+    assert driver.find_elements_by_xpath('//XCUIElementTypeOther[contains(@name, "Start")]')
+
+    driver.back()
+
+
 def test_test():
     capabilities = {
         "deviceName": "iPhone SE",
@@ -29,8 +93,8 @@ def test_test():
     general = driver.find_element_by_xpath('//XCUIElementTypeCell[@name="General"]')
 
     click_on_element(driver, general)
-    accessability = driver.find_element_by_xpath('//XCUIElementTypeCell[@name="Accessibility"]')
-    click_on_element(driver, accessability)
+    accessibility = driver.find_element_by_xpath('//XCUIElementTypeCell[@name="Accessibility"]')
+    click_on_element(driver, accessibility)
 
     time.sleep(5)
     hearing_devoces = driver.find_element_by_name('Hearing Devices')
@@ -45,6 +109,8 @@ def test_test():
 
     if bluetooth_switch:
         bluetooth_switch[0].click()
+
+    test_hearing_device(driver)
 
     driver.back()
     time.sleep(1)
@@ -109,6 +175,7 @@ def test_test():
     driver.background_app(-1)
 
     driver.quit()
+
 
 if __name__ == "__main__":
     test_test()
